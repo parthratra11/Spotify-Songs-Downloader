@@ -37,7 +37,7 @@ track_artists=tuple(track['track']['artists'][0]['name'] for track in playlist_t
 
 track_names_artists=tuple(f'{track_names[track]} by {track_artists[track]} full song' for track in range(len(track_names)))
 
-download_path=input('Enter the download path:'); print('')
+download_path: str=input('Enter the download path:'); print('')
 
 for track in range(len(track_names_artists)):
     yt_search=YoutubeSearch(track_names_artists[track], max_results=1).to_dict()
