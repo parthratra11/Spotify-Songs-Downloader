@@ -138,13 +138,18 @@ def spotify_playlists(entry):
                          'redirect_uri': 'http://www.google.com/',
                          'scope': ('playlist-modify-private', 'playlist-read-private')}
 
-    spotify_auth = SpotifyOAuth(client_id = spotify_credentials['client_id'], client_secret = spotify_credentials['client_secret'], redirect_uri = spotify_credentials['redirect_uri'], scope = spotify_credentials['scope'])
-    refresh_token = spotify_auth.get_cached_token()
+    try:
+        spotify_auth = SpotifyOAuth(client_id = spotify_credentials['client_id'], client_secret = spotify_credentials['client_secret'], redirect_uri = spotify_credentials['redirect_uri'], scope = spotify_credentials['scope'])
+        refresh_token = spotify_auth.get_cached_token()
 
-    token = Spotify(auth_manager = spotify_auth)
-    search_results = token.user_playlists(spotify_username)
+        token = Spotify(auth_manager = spotify_auth)
+        search_results = token.user_playlists(spotify_username)
 
-    spotify_playlists_tuple = tuple(search_results['items'][playlist]['name'] for playlist in range(len(search_results['items'])))
+        spotify_playlists_tuple = tuple(search_results['items'][playlist]['name'] for playlist in range(len(search_results['items'])))
+
+    except:
+        check_proceed3 = messagebox.askokcancel('Spotify Playlist Downloader', 'The credentials entered do not correspond to a Spotify account\n\nPlease enter the credentials again !')
+        initial_entry() if check_proceed3 == True or check_proceed3 == False else None
 
     def entry_backspace():
         global playlist_entry
