@@ -8,47 +8,61 @@ import os
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 
+# CREATING THE BASE WIDGET FOR ALL OPERATIONS TO BE PERFORMED
 base = Tk()
 base.title('Spotify Playlist Songs Downloader'); base.config(background = '#39473F')
 
+# FUNCTION TO SELECT THE DOWNLOADED SPOTIFY ICON AND PROCEED FURTHER
 def icon_selection():
     global base, temp_icon_path
 
     try:
+        # OPENS UP THE FILE_MANAGER AND ASKS FOR THE SELECTION OF DOWNLOADED SPOTIFY_ICON 
         temp_icon_path_var = filedialog.askopenfilename(initialdir = '\\', title = 'Select the downloaded Icon Image')
         temp_icon_path = ImageTk.PhotoImage(Image.open(temp_icon_path_var).resize((200, 200)))
         base.iconphoto(False, temp_icon_path)       
 
     except:
+        # DISPLAYS AN ERROR MESSAGE INCASE AN INVALID FILE IS CHOSEN
         messagebox.showerror('Invalid Icon !', 'Please select a valid spotify icon image !')
         icon_selection()
 
 icon_selection()
 
+# DEFINING THE ESSENTIAL VARIABLES
 client_id, client_secret, spotify_username, check_proceed_1, check_proceed_2 = '', '', '', 0, 0
 
+# FUNCTION TO DOWNLOAD THE CHOSEN PLAYLIST AND FURTHER PROCEEDINGS
 def playlist_download(index):
     global playlist_download_cancel_button, playlist_download_update_str, playlists_download_window, track, check_proceed_2
 
+    # WITHDRAWS THE PLAYLISTS_DISPLAY WIDGET AND MAKES ROOM TO POP UP THE PLAYLISTS_DOWNLOAD WINDOW
     playlists_window.withdraw()
     playlist_download_update_str, track = '\n', 0
 
+    # FUNCTION FOR CANCELLATION OF DOWNLOAD
     def end_download():
         global check_proceed_2
 
+        # POPS UP A DIALOG BOX TO CONFIRM THE CANCELLATION OF DOWNLOAD
         playlist_download_cancel_button.config(state = DISABLED)
         check_cancellation = messagebox.askyesno('Spotify Playlist download cancellation !', 'Do you want to quit the download process ?')
 
         if check_cancellation == 1:
+            # CANCELS THE DOWNLOAD PROCESS AND QUITS THE PROGRAM
             check_proceed_2 = 1; quit()
 
         else:
+            # CONTINUES THE DOWNLOAD IF USER DECLINES THE CANCELLATION
             playlists_download_window.deiconify()
             playlists_download_cancel_button = Button(playlists_download_cancel_frame, text = 'CANCEL', bg = '#4B574E', fg = 'white', width = 11, font = ('Calibri', '10', 'bold'), command = end_download); playlists_download_cancel_button.grid(row = 0, column = 1)
     
+    # FUNCTION FOR POST DOWNLOAD PROCESSES
     def playlist_post_download():
+        # WITHDRAWS THE DOWNLOAD_PROGRESS WINDOW TO MAKE ROOM TO POP UP THE POST_DOWNLOAD_PROCESSING WIDHGET
         playlists_download_window.withdraw()
 
+        # FUNCTION TO CONTINUE DOWNLOADING OTHER PLAYLISTS
         def continue_download():
             playlists_post_download_continue_yes.config(state = DISABLED)
             playlists_post_download_continue_no.config(state = DISABLED)
@@ -57,6 +71,7 @@ def playlist_download(index):
 
             spotify_playlists(1)
 
+        # CREATING THE WIDGET TO ASK USER TO CONTINUE DOWNLOADING OTHER PLAYLISTS OR END THE PROGRAM
         playlists_post_download_window = Toplevel()
         playlists_post_download_window.title('Spotify Playlist Songs Downloader'); playlists_post_download_window.config(background = '#39473F'); playlists_post_download_window.iconphoto(False, temp_icon_path)
 
@@ -79,30 +94,37 @@ def playlist_download(index):
         playlists_post_download_continue_yes = Button(playlists_post_download_frame, text = 'YES', bg = '#4B574E', fg = 'white', width = 10, font = ('Calibri', '10', 'bold'), command = continue_download); playlists_post_download_continue_yes.grid(row = 3, column = 1, padx = 1, pady = 1)
         playlists_post_download_continue_no = Button(playlists_post_download_frame, text = 'NO', bg = '#4B574E', fg = 'white', width = 10, font = ('Calibri', '10', 'bold'), command = quit); playlists_post_download_continue_no.grid(row = 3, column = 2, padx = 1, pady = 1)
 
+    # FUNCTION TO DOWNLOAD THE SELECTED PLAYLIST
     def temp_playlist_download(track):
         global playlist_download_update_str
 
         quit() if check_proceed_2 == 1 else None
 
+        # DOWNLOAD PROCESSING
         if track < len(track_names_artists):
 
+            # SEARCHES THE SONG FROM THE SPOTIFY PLAYLIST AND SEARCHES IT ON YOUTUBE
             yt_search = YoutubeSearch(track_names_artists[track], max_results = 1).to_dict()
             yt_video = YouTube(f"https://www.youtube.com/{yt_search[0]['url_suffix']}").streams.filter(only_audio = True).first()
 
-            try:        
+            try: 
+                # DOWLOADS THE SEACHED SONG AUDIO FROM YOUTUBE IN .mp4 FORMAT AND THEN CHANGES IT TO .mp3 FORMAT
                 main_file = yt_video.download(output_path = download_path)
                 
                 base_file, extension = os.path.splitext(main_file)
                 temp_file = base_file + '.mp3'
                 os.rename(main_file, temp_file)
 
+                # INDICATION THAT THE SONG HAS BEEN SUCCESFULLY DOWNLOADED
                 playlist_download_update_str += f'{yt_video.title} has been successfully downloaded\n'
 
             except:
+                # INDICATION THAT THE SONG COULDN'T BE DOWNLOADED
                 playlist_download_update_str += f'{yt_video.title} could not be downloaded, Please check if the file already exists\n'
 
             track += 1; temp_playlist_download(track)
 
+        # POST DOWNLOAD PROCESSING
         else:
             playlist_download_cancel_button.config(state = DISABLED)
             playlist_post_download()
@@ -113,10 +135,13 @@ def playlist_download(index):
     track_names = tuple(track['track']['name'] for track in playlist_tracks)
     track_artists = tuple(track['track']['artists'][0]['name'] for track in playlist_tracks)
 
+    # TUPLE CONTAINING TRACKS + ARTISTS NAME FROM THE SELECTED PLAYLIST
     track_names_artists=tuple(f'{track_names[track]} by {track_artists[track]} full song' for track in range(len(track_names)))
 
+    # ASKS FOR THE LOCATION TO DOWNLOAD THE TRACKS FROM THE PLAYLIST
     download_path = filedialog.askdirectory(initialdir = '//', title = 'Select the location for the songs to be downloaded')
 
+    # CREATES THE WIDGET TO DISPLAY THE DOWNLOAD OPERATION
     playlists_download_window = Toplevel()
     playlists_download_window.title('Spotify Playlist Songs Downloader'); playlists_download_window.config(background = '#39473F'); playlists_download_window.iconphoto(False, temp_icon_path)
 
@@ -128,16 +153,20 @@ def playlist_download(index):
 
     download_func = Thread(target = lambda: temp_playlist_download(track)); download_func.start()
 
+# PLAYLISTS_DISPLAY AND SPOTIFY_PLAYLIST_INDEX ENTRY
 def spotify_playlists(entry):
     global playlist_entry, spotify_playlists_tuple, search_results, token, playlists_window
 
+    # WITHDRAWING THE USERNAME_ENTRY WINDOW TO MAKE ROOM FOR THE PLAYLISTS_DISPLAY WINDOW
     user_entry_window.withdraw() if entry == 0 else None
 
+    # USER_SPOTIFY_CREDENTIALS
     spotify_credentials={'client_id': client_id,
                          'client_secret': client_secret,
                          'redirect_uri': 'http://www.google.com/',
                          'scope': ('playlist-modify-private', 'playlist-read-private')}
 
+    # CREATING THE LINK BETWEEN THE PYTHON CODE AND SPOTIFY
     try:
         spotify_auth = SpotifyOAuth(client_id = spotify_credentials['client_id'], client_secret = spotify_credentials['client_secret'], redirect_uri = spotify_credentials['redirect_uri'], scope = spotify_credentials['scope'])
         refresh_token = spotify_auth.get_cached_token()
@@ -145,21 +174,26 @@ def spotify_playlists(entry):
         token = Spotify(auth_manager = spotify_auth)
         search_results = token.user_playlists(spotify_username)
 
+        # TUPLE CONTAINING SPOTIFY_PLAYLISTS NAMES
         spotify_playlists_tuple = tuple(search_results['items'][playlist]['name'] for playlist in range(len(search_results['items'])))
 
     except:
+        # ERROR POPUP INCASE THE CREDENTIALS ENTERED ARE INCORRECT
         check_proceed3 = messagebox.askokcancel('Spotify Playlist Downloader', 'The credentials entered do not correspond to a Spotify account\n\nPlease enter the credentials again !')
         initial_entry() if check_proceed3 == True or check_proceed3 == False else None
 
+    # FUNCTION TO PERFORM THE BACKSPACE OPERATION FOR SPOTIFY_PLAYLISTS_INDEX ENTRY
     def entry_backspace():
         global playlist_entry
 
         temp_entry_val = str(playlist_entry.get())
         playlist_entry.delete(0, END); playlist_entry.insert(0, temp_entry_val[-2::-1][::-1])
 
+    # FUNTION TO CONFIRM SPOTIFY_PLAYLISTS_INDEX ENTRY
     def entry_confirmed():
 
-        if (playlist_entry.get()).isalpha() or int(playlist_entry.get()) > len(spotify_playlists_tuple):
+        # DISPLAY AN ERROR WARNING INCASE THE ENTERED INDEX ISN'T VALID
+        if (playlist_entry.get()).isalpha() or int(playlist_entry.get()) > len(spotify_playlists_tuple) or int(playlist_entry.get()) < 1:
             messagebox.showerror('Error Warning !', 'Enter a valid Index No. !')
 
         else:
@@ -170,6 +204,7 @@ def spotify_playlists(entry):
 
             playlist_download(int(playlist_entry.get()) - 1)
 
+    # CREATING THE WIDGET TO DISPLAY THE PLAYLISTS NAME AND TAKING THE PLAYLIST TO BE DOWNLOADED AS INPUT
     playlists_window = Toplevel()
     playlists_window.title('Spotify Playlist Songs Downloader'); playlists_window.config(background = '#39473F'); playlists_window.iconphoto(False, temp_icon_path)
 
@@ -190,20 +225,25 @@ def spotify_playlists(entry):
     playlist_backspace = Button(temp_playlist_frame_2, bg = '#4B574E', fg = 'white', height = 3, text = '<<', width = 6, font = ('Candara', '10', 'bold'), borderwidth = 2, command = entry_backspace); playlist_backspace.grid(row = len(spotify_playlists_tuple) + 1, column = 2, rowspan = 2, padx = 2, pady = 2)
     playlist_confirm = Button(temp_playlist_frame_2, bg = '#4B574E', fg = 'white', text = 'Confirm', width = 10, font = ('Candara', '10', 'bold'), borderwidth = 2, command = entry_confirmed); playlist_confirm.grid(row = len(spotify_playlists_tuple) + 2, column = 1)
 
+# SPOTIFY USERNAME CODE ENTRY
 def username_entry():
     global user_entry, user_entry_window
 
+    # WITHDRAWING THE CLIENT_ID AND CLIENT_SECRET INPUT WIDGET TO MAKE ROOM FOR THE USERNAME_ENTRY WIDGET TO POP UP
     id_entry.withdraw()
 
+    # CREATING THE WIDGET TO INPUT THE SPOTIFY_USERNAME_CODE
     user_entry_window = Toplevel()
     user_entry_window.title('Spotify Playlist Songs Downloader'); user_entry_window.config(background = '#39473F'); user_entry_window.iconphoto(False, temp_icon_path)
 
+    # FUNCTION TO PERFORM THE BACKSPACE OPERATION FOR SPOTIFY_USERNAME_CODE
     def entry_backspace():
         global user_entry
 
         temp_entry_val = str(user_entry.get())
         user_entry.delete(0, END); user_entry.insert(0, temp_entry_val[-2::-1][::-1])
 
+    # FUNTION TO CONFIRM SPOTIFY_USERNAME_CODE ENTRY
     def entry_confirmed():
         global spotify_username, user_entry
 
@@ -220,6 +260,7 @@ def username_entry():
 
             spotify_playlists(0)
 
+    # CREATION OF FRAME, INSRUCTIONS_TEXT, LABELS AND BUTTONS FOR THE SPOTIFY_USERNAME_CODE INPUT WIDGET
     user_entry_frame = Frame(user_entry_window, borderwidth = 7, bg = '#BFBFBF'); user_entry_frame.grid(row = 0, column = 0, columnspan = 4, padx = 10, pady = 10)
 
     instructions_text_2 = '''\n6. For spotify username input, 
@@ -235,17 +276,19 @@ def username_entry():
     user_backspace = Button(user_entry_frame, bg = '#4B574E', fg = 'white', text = '<<', width = 5, font = ('Candara', '10', 'bold'), borderwidth = 2, command = entry_backspace); user_backspace.grid(row = 2, column = 2)
     user_confirm = Button(user_entry_frame, bg = '#4B574E', fg = 'white', text = 'Confirm', width = 10, font = ('Candara', '10', 'bold'), borderwidth = 2, command = entry_confirmed); user_confirm.grid(row = 2, column = 3)
 
+# CLIENT_ID AND CLIENT_SECRET ENTRY
 def initial_entry():
     global id_entry, client_id, client_secret, check_proceed_1, client_id_entry, client_secret_entry
 
+    # WITHDRAWING THE BASE WIDGET AND MAKING ROOM FOR THE INPUT WIDGET TO POP UP
     base_entry_button.config(state = DISABLED)
     base.withdraw()
 
+    # CREATING THE SECOND WIDGET FOR INPUT OF CLIENT_ID AND CLIENT_SECRET
     id_entry = Toplevel()
     id_entry.title('Spotify Playlist Songs Downloader'); id_entry.config(background = '#39473F'); id_entry.iconphoto(False, temp_icon_path)
         
-    initial_entries = Frame(id_entry, borderwidth = 7, bg = '#BFBFBF'); initial_entries.pack(anchor = CENTER, padx = 10, pady = 10)
-
+    # FUNCTION TO PERFORM THE BACKSPACE OPERATION FOR CLIENT_ID AND CLIENT_SECRET
     def entry_backspace(var):
         global client_id_entry, client_secret_entry
 
@@ -257,9 +300,11 @@ def initial_entry():
         elif var == 'client_secret':
             client_secret_entry.delete(0, END); client_secret_entry.insert(0, temp_entry_val[-2::-1][::-1])        
 
+    # FUNTION TO CONFIRM BOTH CLIENT_ID AND CLIENT_SECRET ENTRIES
     def entry_confirmed(var):
         global client_id, client_secret, check_proceed_1
 
+        # ERROR MEESSAGE POPS UP INCASE USER CONFIRMS AN EMPTY INPUT FOR CLIENT_ID AND CLIENT_SECRET
         if str(eval(f'{var}_entry').get()) == '':
             messagebox.showerror('Error Warning !', f'Client {var[7::]} cannot be empty !')
 
@@ -281,7 +326,11 @@ def initial_entry():
                 client_secret_backspace.config(state = DISABLED)                
                 client_secret_confirm.config(state = DISABLED)                
 
+            # IF BOTH CLIENT_ID AND CLIENT_SECRET ARE CONFIRMED, IT PROCEEDS FURTHER
             username_entry() if check_proceed_1 == 2 else None
+
+    # CREATION OF FRAME, INSRUCTIONS_TEXT, LABELS AND BUTTONS FOR THE CLIENT_ID AND CLIENT_SECRET INPUT WIDGET
+    initial_entries = Frame(id_entry, borderwidth = 7, bg = '#BFBFBF'); initial_entries.pack(anchor = CENTER, padx = 10, pady = 10)
 
     instructions_text_1 = '''\nFollow the following instructions to proceed further:
     (Make sure you are connected to the internet throughout the process)\n
@@ -303,6 +352,7 @@ def initial_entry():
     client_secret_backspace = Button(initial_entries, bg = '#4B574E', fg = 'white', text = '<<', width = 5, font = ('Candara', '10', 'bold'), borderwidth = 2, command = lambda: entry_backspace('client_secret')); client_secret_backspace.grid(row = 2, column = 2)
     client_secret_confirm = Button(initial_entries, bg = '#4B574E', fg = 'white', text = 'Confirm', width = 10, font = ('Candara', '10', 'bold'), borderwidth = 2, command = lambda: entry_confirmed('client_secret')); client_secret_confirm.grid(row = 2, column = 3)
 
+# CREATING THE FRAME, LABELS AND BUTTONS FOR THE BASE WIDGET
 base_frame = Frame(base).grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10)
 
 base_image_label = Label(base_frame, image = temp_icon_path, highlightbackground = 'white', highlightthickness = 2, relief = RAISED).grid(row = 0, column = 0, rowspan = 2, padx = 2, pady = 5)
