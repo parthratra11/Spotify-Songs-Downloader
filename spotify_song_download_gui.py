@@ -16,16 +16,23 @@ base.title('Spotify Playlist Songs Downloader'); base.config(background = '#3947
 def icon_selection():
     global base, temp_icon_path
 
-    try:
-        # OPENS UP THE FILE_MANAGER AND ASKS FOR THE SELECTION OF DOWNLOADED SPOTIFY_ICON 
-        temp_icon_path_var = filedialog.askopenfilename(initialdir = '\\', title = 'Select the downloaded Icon Image')
-        temp_icon_path = ImageTk.PhotoImage(Image.open(temp_icon_path_var).resize((200, 200)))
-        base.iconphoto(False, temp_icon_path)       
+    # try:
+    #     # OPENS UP THE FILE_MANAGER AND ASKS FOR THE SELECTION OF DOWNLOADED SPOTIFY_ICON 
+    #     temp_icon_path_var = filedialog.askopenfilename(initialdir = '\\', title = 'Select the downloaded Icon Image')
+    #     temp_icon_path = ImageTk.PhotoImage(Image.open(temp_icon_path_var).resize((200, 200)))
+    #     base.iconphoto(False, temp_icon_path)       
 
+    # except:
+    #     # DISPLAYS AN ERROR MESSAGE INCASE AN INVALID FILE IS CHOSEN
+    #     messagebox.showerror('Invalid Icon !', 'Please select a valid spotify icon image !')
+    #     icon_selection()
+
+    #   AUTOMATICALLY PICKS UP THE LOGO TO RUN THE APPLICATION
+    try:
+        temp_icon_path = ImageTk.PhotoImage(Image.open('./spotify-logo.jpg').resize((200, 200)))
+        base.iconphoto(False, temp_icon_path)
     except:
-        # DISPLAYS AN ERROR MESSAGE INCASE AN INVALID FILE IS CHOSEN
-        messagebox.showerror('Invalid Icon !', 'Please select a valid spotify icon image !')
-        icon_selection()
+        temp_icon_path = None
 
 icon_selection()
 
@@ -286,7 +293,10 @@ def initial_entry():
 
     # CREATING THE SECOND WIDGET FOR INPUT OF CLIENT_ID AND CLIENT_SECRET
     id_entry = Toplevel()
-    id_entry.title('Spotify Playlist Songs Downloader'); id_entry.config(background = '#39473F'); id_entry.iconphoto(False, temp_icon_path)
+    id_entry.title('Spotify Playlist Songs Downloader'); id_entry.config(background = '#39473F'); 
+    
+    if temp_icon_path:
+        id_entry.iconphoto(False, temp_icon_path)
         
     # FUNCTION TO PERFORM THE BACKSPACE OPERATION FOR CLIENT_ID AND CLIENT_SECRET
     def entry_backspace(var):
@@ -355,7 +365,9 @@ def initial_entry():
 # CREATING THE FRAME, LABELS AND BUTTONS FOR THE BASE WIDGET
 base_frame = Frame(base).grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10)
 
-base_image_label = Label(base_frame, image = temp_icon_path, highlightbackground = 'white', highlightthickness = 2, relief = RAISED).grid(row = 0, column = 0, rowspan = 2, padx = 2, pady = 5)
+if temp_icon_path:
+    base_image_label = Label(base_frame, image = temp_icon_path, highlightbackground = 'white', highlightthickness = 2, relief = RAISED).grid(row = 0, column = 0, rowspan = 2, padx = 2, pady = 5) if temp_icon_path else None
+
 base_info_label = Label(base_frame, text = 'Spotify Playlist Songs Downloader', width = 30, font = ('Candara', '20', 'bold'), highlightbackground = 'white', highlightthickness = 2, height = 5, relief = RAISED).grid(row = 0, column = 1, padx = 5, pady = 5, columnspan = 2)
 base_entry_label = Label(base_frame, text = "Press 'Enter' to proceed further ->", width = 51, font = ('Calibri', '10', 'bold'), highlightbackground = 'white', highlightthickness = 1, height = 1, anchor = E).grid(row = 1, column = 1, padx = 5)
 base_entry_button = Button(base_frame, text = 'ENTER', width = 11, font = ('Calibri', '10', 'bold'), bg = '#4B574E', fg = 'white', command = initial_entry); base_entry_button.grid(row = 1, column = 2, padx = 5)
