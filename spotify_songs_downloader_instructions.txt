@@ -5,7 +5,7 @@
     b. use http://www.google.com/ as redirect uri
 4. make sure you are still connected to the internet
 5. run the program and give the required inputs
-6.for spotify username input, click on your spotify pfp from your pc and go to accounts opt, it will redirect you to a site, from there choose the opt to edit profile, there you will see your actual spotify username, give that as the spotify username input
+6. for spotify username input, click on your spotify pfp from your pc and go to accounts opt, it will redirect you to a site, from there choose the opt to edit profile, there you will see your actual spotify username, give that as the spotify username input
 7. download the playlist somewhere on your pc by giving the download location (use proper path)
 8. import the downloaded songs to your mobile phone from the pc after all the songs have been downloaded
 9. go to spotify on your mobile phone and enable the show local files feature
